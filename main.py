@@ -13,11 +13,11 @@ class AdventureGame:
         self.holding = None
         self.memory = {
             'remember_names': ('wife', 'guy'),
-            'remember_stress': 0,
+            'remember_stress': False,
             'found_note_knife': 0,
             'found_letter_wife': 0,
-            'found_crowbar': 0,
-            'found_body': 0
+            'found_crowbar': False,
+            'found_body': False
         }
 
     def start(self):
@@ -28,30 +28,34 @@ class AdventureGame:
         print("I just rushed into the hallway of my house, feeling scared and confused.")
         print("Suddenly, it hit me — I can't remember why I was running or why I'm so shaky.")
         print("Maybe if I go back to the front door, I'll figure out what spooked me.")
-        print("Available commands: 'look', 'go_to <object>', 'examine <object>'")
+        self.help()
+
+    def help(self):
+        print("\nAvailable commands: 'look', 'go_to <object>', 'examine <object>', 'help'")
 
     def command_loop(self):
         while True:
-            command = input("> ").strip().lower()
-            if command == 'look':
-                self.look()
-            elif command.startswith('go_to '):
-                obj = command[6:]
-                self.go_to(obj)
-            elif command.startswith('examine '):
-                obj = command[8:]
-                self.examine(obj)
-            elif command == 'save_charlie':
-                self.save_charlie()
-            elif command == 'try_open_attic_door':
-                self.try_open_attic_door()
-            elif command == 'look_up':
-                self.look_up()
-            elif command == 'quit':
-                print("Quitting the game.")
-                break
-            else:
-                print("Unknown command.")
+            command = input("> ").strip().lower().split(" ")
+            match command:
+                case ['look']:
+                    self.look()
+                case ['go_to', obj]:
+                    self.go_to(obj)
+                case ['examine', obj]:
+                    self.examine(obj)
+                case ['save_charlie']:
+                    self.save_charlie()
+                case ['try_open_attic_door']:
+                    self.try_open_attic_door()
+                case ['look_up']:
+                    self.look_up()
+                case ['help']:
+                    self.help()
+                case ['quit']:
+                    print("Quitting the game.")
+                    break
+                case _:
+                    print("Unknown command.")
 
     def look(self):
         print(f"You are at the {self.current_room}.")
@@ -71,7 +75,7 @@ class AdventureGame:
         else:
             print("This object is not nearby.")
 
-    def interact_with(self, obj):
+    def interact_with(self, object):
         interactions = {
             'front_door': self.interact_front_door,
             'plant': lambda: self.find_note("Oh! There's a note behind the plant! 'Got home tired, found a candlelit dinner in the backyard, thanks to my wife. Made my day!'"),
@@ -97,11 +101,11 @@ class AdventureGame:
             'person': self.person_interaction,
             'fabric': lambda: print("This should work! Write save_charlie to use fabric to stop the bleeding.")
         }
-        action = interactions.get(obj)
-        if action:
+
+        if action := interactions.get(object):
             action()
         else:
-            print(f"Nothing special about the {obj}.")
+            print(f"Nothing special about the {object}.")
 
     def find_note(self, message):
         print(message)
@@ -148,14 +152,14 @@ class AdventureGame:
             print("Oh, here is a photo of me and Charlie from our childhood. He is such a good friend of mine.")
 
     def lock_squeaks(self):
-        if self.memory['remember_stress'] == 1 and self.memory['remember_names'][0] == 'Vanessa':
+        if self.memory['remember_stress'] and self.memory['remember_names'][0] == 'Vanessa':
             print("I heard a squeak from the lock. Oh, I think this sound came from the kitchen! I can go there now!")
             self.rooms['office'].append('kitchen_door')
 
     def bookshelf_interaction(self):
         print("There is a bookshelf here. There's another note here!")
         print("I have so much work to do! I can't find time for my wife... I am so stressed out that sometimes I can't control my emotions...")
-        self.memory['remember_stress'] = 1
+        self.memory['remember_stress'] = True
         self.lock_squeaks()
 
     def table_interaction(self):
@@ -181,7 +185,7 @@ class AdventureGame:
 
     def tool_shelf_interaction(self):
         print("There are piles of screws and scraps of papers. Crap, I am not a tidy person, I hope I will find something though. Oh yes! Between hammers I found a crowbar! That should do it! Now I can use this to open the attic door...")
-        self.memory['found_crowbar'] = 1
+        self.memory['found_crowbar'] = True
 
     def garage_door_interaction(self):
         if self.memory['found_crowbar']:
@@ -255,8 +259,8 @@ class AdventureGame:
 
     def examine_phone(self):
         if self.next_to_object == 'person':
-            print("Yes, they had some secret meetings... They don't talk about their relationship though... They're talking about ME! But not in a bad way, they are worried... Worried about me? Vanessa writes that I'm not in the best mental place. That I am impulsive, under a lot of stress, that I started seeing things... Suddenly I hear another voice... no emotions in it, almost as it wasn't exactly human one...")
-            self.memory['found_body'] = 1
+            print("Yes, they had some secret meetings... They don't tlookalk about their relationship though... They're talking about ME! But not in a bad way, they are worried... Worried about me? Vanessa writes that I'm not in the best mental place. That I am impulsive, under a lot of stress, that I started seeing things... Suddenly I hear another voice... no emotions in it, almost as it wasn't exactly human one...")
+            self.memory['found_body'] = True
             self.charlie_talks()
         else:
             print("I need to go to the person first")
@@ -284,6 +288,8 @@ class AdventureGame:
             print("I feel like I'm suffocating in this damn house!")
             print("I managed to run to the hall, I see the front door, I can get out of this madness")
 
-# Initialize and start the game
-game = AdventureGame()
-game.start()
+
+if __name__ == '__main__':
+    # Initialize and start the game
+    game = AdventureGame()
+    game.start()
