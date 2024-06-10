@@ -1,4 +1,7 @@
 from enum import StrEnum
+import pygame
+import threading
+import time
 
 
 class Room(StrEnum):
@@ -58,6 +61,17 @@ class Memory(StrEnum):
 
 class AdventureGame:
     def __init__(self):
+        pygame.mixer.init()
+
+        # Opcjonalnie do dźwięków w tle:
+        background_sound_file = 'path/to/background_sound.wav'
+        interval = 10
+
+        background_sound_thread = threading.Thread(target=self.play_background_sound,
+                                                   args=(background_sound_file, interval),
+                                                   daemon=True)
+        background_sound_thread.start()
+
         self.current_room = Room.HALL
         self.next_to_object = Object.DRESSER
         self.rooms: dict[Room, list[Object]] = {
@@ -85,6 +99,15 @@ class AdventureGame:
         self.introduction()
         self.help()
         self.command_loop()
+
+    def play_sound(self, sound_file):
+        sound = pygame.mixer.Sound(sound_file)
+        sound.play()
+
+    def play_background_sound(self, sound_file, interval):
+        while True:
+            self.play_sound(sound_file)
+            time.sleep(interval)
 
     @staticmethod
     def introduction():
@@ -365,3 +388,7 @@ if __name__ == '__main__':
     # Initialize and start the game
     game = AdventureGame()
     game.start()
+
+
+# HOW TO PLAY:
+# play_sound(path_to_sound_file)
