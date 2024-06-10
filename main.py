@@ -64,11 +64,12 @@ class AdventureGame:
         pygame.mixer.init()
 
         # Opcjonalnie do dźwięków w tle:
-        background_sound_file = 'path/to/background_sound.wav'
-        interval = 10
+        background_sound_file = 'sounds/VR_background_muzyczka.wav'
+        interval = 10  # Interval in seconds
+        volume = 0.2
 
         background_sound_thread = threading.Thread(target=self.play_background_sound,
-                                                   args=(background_sound_file, interval),
+                                                   args=(background_sound_file, interval, volume),
                                                    daemon=True)
         background_sound_thread.start()
 
@@ -96,17 +97,25 @@ class AdventureGame:
         }
 
     def start(self):
+        #threading.Thread(target=self.play_sound, args=('sounds/VR_dyszenie.wav',), daemon=True).start()
+        self.play_sound('sounds/VR_dyszenie.wav')
         self.introduction()
         self.help()
+        self.play_sound('sounds/VR_kobiecy placz i belkot .wav')
         self.command_loop()
 
     def play_sound(self, sound_file):
         sound = pygame.mixer.Sound(sound_file)
         sound.play()
+        if sound_file in ('sounds/VR_kroki_krotkie.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3', 'sounds/VR_strych_dobijanie.wav', 'sounds/VR_wbieganie_po_schodach.wav', 'sounds/VR_mezczyzna_krzyczacy.wav'):
+            sound_length = sound.get_length()
+            time.sleep(sound_length)
 
-    def play_background_sound(self, sound_file, interval):
+    def play_background_sound(self, sound_file, interval, volume):
+        background_sound = pygame.mixer.Sound(sound_file)
+        background_sound.set_volume(volume)
         while True:
-            self.play_sound(sound_file)
+            background_sound.play()
             time.sleep(interval)
 
     @staticmethod
@@ -165,6 +174,13 @@ class AdventureGame:
 
     def go_to(self, obj: Object):
         if obj in self.rooms[self.current_room]:
+            if self.current_room == Room.ATTIC and obj == Room.KITCHEN:
+                self.play_sound('sounds/VR_wbieganie_po_schodach.wav')
+            elif obj == Room.BEDROOM:
+                self.play_sound('sounds/VR_mezczyzna_krzyczacy.wav')
+                self.play_sound('sounds/VR_kobiecy placz_z_bliska .wav')
+
+            self.play_sound('sounds/VR_kroki_krotkie.wav')
             self.next_to_object = obj
             self.interact_with(obj)
         else:
@@ -203,6 +219,7 @@ class AdventureGame:
             print(f"Nothing special about the {obj}.")
 
     def find_note(self, message):
+        self.play_sound('sounds/papier - wszystkie interakcje z papierem(pytanie xd).mp3')
         print(message)
 
     def find_key(self):
@@ -211,8 +228,10 @@ class AdventureGame:
 
     def interact_front_door(self):
         if not self.memory[Memory.FOUND_BODY]:
+            self.play_sound('sounds/VR_strych_dobijanie.wav')
             print("Oh no! I'm trying to open the front door, but it seems like it's closed. Maybe I'll try to look around and see if I can find some clues.")
         else:
+            self.play_sound('sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3')
             print("It's open now! I run through them...")
             print("I don't even look around, I just wanna run as far as possible...")
             print("I just don't want to hear this crying anymore...")
@@ -227,15 +246,18 @@ class AdventureGame:
 
     def try_to_open_door(self):
         if self.holding == 'office_key':
+            self.play_sound('sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3')
             print("I opened the door with the key and went inside the office.")
             self.current_room = Room.OFFICE
             self.holding = None
         else:
+            self.play_sound('sounds/VR_strych_dobijanie.wav')
             print("This door is closed. Maybe I can find some key that opens it.")
 
     def explore_computer(self):
         print("Exploring the computer...")
         if not self.memory[Memory.REMEMBER_NAMES][0] == 'Vanessa':
+            self.play_sound('sounds/VR_odłożenie_zdjęcia.wav')
             print("I found a folder named 'Venice_2019'.")
             print("In another folder named 'My beautiful wife' I found photos of some female.")
             print("Oh god! I found a picture from the wedding! The guy she has married is me! This is my wife!")
@@ -243,11 +265,13 @@ class AdventureGame:
             self.memory[Memory.REMEMBER_NAMES] = ('Vanessa', 'Charlie')
             self.lock_squeaks()
         else:
+            self.play_sound('sounds/VR_odłożenie_zdjęcia.wav')
             print("There are so many beautiful photos of my wife, Vanessa on this computer. I love her so much.")
             print("Oh, here is a photo of me and Charlie from our childhood. He is such a good friend of mine.")
 
     def lock_squeaks(self):
         if self.memory[Memory.REMEMBER_STRESS] and self.memory[Memory.REMEMBER_NAMES][0] == 'Vanessa':
+            self.play_sound('sounds/VR_zamek_do_drzwi.wav')
             print("I heard a squeak from the lock. Oh, I think this sound came from the kitchen! I can go there now!")
             self.rooms[Room.OFFICE].append(Object.KITCHEN_DOOR)
 
@@ -266,6 +290,7 @@ class AdventureGame:
         self.rooms[Room.KITCHEN].extend([Object.CALENDAR, Object.SHOPPING_LIST, Object.FOLDED_NOTE])
 
     def attic_door_interaction(self):
+        self.play_sound('sounds/VR_wbieganie_po_schodach.wav')
         print("There are blood stains on the door and the knob. And streaks of blood leading up to the entrance. I need to go to the attic to check what happened.")
         print("You can write try_open_attic_door()")
 
@@ -283,6 +308,7 @@ class AdventureGame:
         self.memory[Memory.FOUND_CROWBAR] = True
 
     def garage_door_interaction(self):
+        self.play_sound('sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3')
         if self.memory[Memory.FOUND_CROWBAR]:
             print("Let's go to that attic now...")
             self.current_room = Room.KITCHEN
@@ -295,9 +321,11 @@ class AdventureGame:
 
     def try_open_attic_door(self):
         if self.memory[Memory.FOUND_CROWBAR]:
+            self.play_sound('sounds/ciecie drewna - dostanie sie na strycxh.mp3')
             print("It was a struggle but I managed to open it. I can enter the attic now...")
             self.current_room = Room.ATTIC
         else:
+            self.play_sound('sounds/VR_strych_dobijanie.wav')
             print("I try to open the door, but it is locked. The door seems to be jammed. I need something to pry it open. Maybe in the garage I will find something to open it")
 
     def examine(self, object_name: Object):
@@ -321,6 +349,7 @@ class AdventureGame:
 
     def examine_calendar(self):
         if self.next_to_object == Object.FRIDGE:
+            self.play_sound('sounds/VR_odłożenie_zdjęcia.wav')
             print("It is a calendar with a fun photo of a dog. Today's date is circled in red with Charlie's name. Maybe he is coming here today. I would love to see my dear friend")
         else:
             print("It was on the fridge. I need to go to the fridge first")
@@ -333,6 +362,7 @@ class AdventureGame:
 
     def examine_folded_note(self):
         if self.next_to_object == Object.FRIDGE:
+            self.play_sound('sounds/papier - wszystkie interakcje z papierem(pytanie xd).mp3')
             print("I am unfolding the note. Oh! It looks like another note from my notebook! The note says: 'I cannot believe it! How could he do this to me? I trusted him with everything. He was so important to me, but now... The pain is unbearable.'")
             self.memory[Memory.FOUND_KITCHEN_NOTE] = True
         else:
@@ -340,6 +370,7 @@ class AdventureGame:
 
     def examine_knife(self):
         if self.next_to_object == Object.TABLE:
+            self.play_sound('sounds/VR_noz.wav')
             print("This knife is really large. It is covered in blood. The blood does not seem to be from the meat. It looks weird...")
             self.memory[Memory.FOUND_KNIFE] = True
         else:
@@ -354,6 +385,7 @@ class AdventureGame:
 
     def examine_phone(self):
         if self.next_to_object == Object.PERSON:
+            self.play_sound('sounds/VR_telefon.wav')
             print("Yes, they had some secret meetings... They don't talk about their relationship though... They're talking about ME! But not in a bad way, they are worried... Worried about me? Vanessa writes that I'm not in the best mental place. That I am impulsive, under a lot of stress, that I started seeing things... Suddenly I hear another voice... no emotions in it, almost as it wasn't exactly human one...")
             self.memory[Memory.FOUND_BODY] = True
             self.charlie_talks()
