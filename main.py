@@ -259,8 +259,8 @@ class AdventureGame:
 
     def examine_phone(self):
         if self.next_to_object == 'person':
-            print("Yes, they had some secret meetings... They don't tlookalk about their relationship though... They're talking about ME! But not in a bad way, they are worried... Worried about me? Vanessa writes that I'm not in the best mental place. That I am impulsive, under a lot of stress, that I started seeing things... Suddenly I hear another voice... no emotions in it, almost as it wasn't exactly human one...")
             self.memory['found_body'] = True
+            print("Yes, they had some secret meetings... They don't talk about their relationship though... They're talking about ME! But not in a bad way, they are worried... Worried about me? Vanessa writes that I'm not in the best mental place. That I am impulsive, under a lot of stress, that I started seeing things... Suddenly I hear another voice... no emotions in it, almost as it wasn't exactly human one...")
             self.charlie_talks()
         else:
             print("I need to go to the person first")
