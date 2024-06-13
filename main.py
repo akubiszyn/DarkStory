@@ -28,6 +28,7 @@ class Object(StrEnum):
     TABLE = "table"
     FRIDGE = "fridge"
     KITCHEN_DOOR = "kitchen_door"
+    BEDROOM_DOOR = "bedroom_door"
     WINDOW = "window"
     BED = "bed"
     BESIDE_TABLE = "bedside_table"
@@ -45,6 +46,7 @@ class Object(StrEnum):
     KNIFE = "knife"
     LETTER = "letter"
     PHONE = "phone"
+    OFFICE_KEY = "office_key"
 
 
 class Memory(StrEnum):
@@ -80,9 +82,9 @@ class AdventureGame:
                 Object.FRONT_DOOR, Object.DRESSER, Object.WARDROBE, Object.UMBRELLA, Object.PLANT, Object.PAINTING,
                 Object.OFFICE_DOOR
             ],
-            Room.OFFICE: [Object.DESK, Object.CHAIR, Object.COMPUTER, Object.BOOKSHELF],
-            Room.KITCHEN: [Object.TABLE, Object.FRIDGE, Object.WINDOW, Object.ATTIC_DOOR],
-            Room.BEDROOM: [Object.BED, Object.BESIDE_TABLE, Object.CLOSET, Object.WIFE],
+            Room.OFFICE: [Object.OFFICE_DOOR, Object.DESK, Object.CHAIR, Object.COMPUTER, Object.BOOKSHELF],
+            Room.KITCHEN: [Object.KITCHEN_DOOR, Object.TABLE, Object.FRIDGE, Object.WINDOW, Object.ATTIC_DOOR],
+            Room.BEDROOM: [Object.BEDROOM_DOOR, Object.BED, Object.BESIDE_TABLE, Object.CLOSET, Object.WIFE],
             Room.GARAGE: [Object.CAR, Object.TOOL_SHELF, Object.GARAGE_DOOR],
             Room.ATTIC: [Object.PERSON, Object.ATTIC_DOOR, Object.FABRIC]
         }
@@ -105,6 +107,8 @@ class AdventureGame:
 
     @staticmethod
     def play_sound(sound_file):
+        if DEBUG_MODE:
+            return
         sound = pygame.mixer.Sound(sound_file)
         sound.play()
         if sound_file in ('sounds/VR_kroki_krotkie.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3',
@@ -219,6 +223,7 @@ class AdventureGame:
             Object.WINDOW: lambda: print("This is kitchen window. It's pretty dark outside. "
                                          "It's hard to see what's out there."),
             Object.ATTIC_DOOR: self.attic_door_interaction,
+            Object.BEDROOM_DOOR: self.interact_bedroom_door,
 
             # BEDROOM
             Object.BESIDE_TABLE: self.bedside_table_interaction,
@@ -251,7 +256,7 @@ class AdventureGame:
 
     def find_key(self):
         print("I found a key in the drawer. I wonder what it opens.")
-        self.holding = 'office_key'
+        self.holding = Object.OFFICE_KEY
 
     def interact_front_door(self):
         if not self.memory[Memory.FOUND_BODY]:
@@ -273,9 +278,10 @@ class AdventureGame:
         self.__init__()
 
     def try_to_open_office_door(self):
-        if self.holding == 'office_key':
+        if self.holding == Object.OFFICE_KEY:
             self.play_sound('sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3')
-            print("I opened the door with the key and went inside the office.")
+            print("I opened the door with the key and went inside the office. "
+                  "I should look around and see what's in here.")
             self.current_room = Room.OFFICE
             self.holding = None
         else:
@@ -325,7 +331,17 @@ class AdventureGame:
         self.play_sound('sounds/VR_wbieganie_po_schodach.wav')
         print("There are blood stains on the door and the knob. And streaks of blood leading up to the entrance. "
               "I need to go to the attic to check what happened.")
-        print("You can write try_open_attic_door()")
+        print("You can use new command: `try_open_attic_door`")
+
+    def interact_bedroom_door(self):
+        match self.current_room:
+            case Room.BEDROOM:
+                if not (self.memory[Memory.FOUND_BEDROOM_LETTER] and self.memory[Memory.FOUND_BED]):
+                    print("I have to find out more...")
+                else:
+                    print("I should go back to the hall and then go to the garage")
+            case Room.HALL:
+                print("Let's see what's inside the bedroom now.")
 
     def bedside_table_interaction(self):
         print("I am next to the bedside_table. There is a lamp on it. And there seems to be a folded note under the "
@@ -339,9 +355,17 @@ class AdventureGame:
         self.next_to_object = Object.WIFE
 
     def kitchen_door_interaction(self):
-        print("Let's go to the kitchen!")
         self.next_to_object = Object.KITCHEN_DOOR
-        self.current_room = Room.KITCHEN
+        match self.current_room:
+            case Room.OFFICE:
+                print("Let's go to the kitchen!")
+                self.current_room = Room.KITCHEN
+            case Room.KITCHEN:
+                if not (self.memory[Memory.FOUND_KITCHEN_NOTE] and self.memory[Memory.FOUND_KNIFE]):
+                    print("I have to find out more before I will go somewhere else...")
+                else:
+                    print("Let's go back to the hall and then I will go to the bedroom.")
+                    self.rooms[Room.HALL].append(Object.BEDROOM_DOOR)
 
     def tool_shelf_interaction(self):
         print("There are piles of screws and scraps of papers. Crap, I am not a tidy person, "
@@ -351,11 +375,15 @@ class AdventureGame:
 
     def garage_door_interaction(self):
         self.play_sound('sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3')
-        if self.memory[Memory.FOUND_CROWBAR]:
-            print("Let's go to that attic now...")
-            self.current_room = Room.KITCHEN
-        else:
-            print("I have to find something to open that attic door first...")
+        match self.current_room:
+            case Room.GARAGE:
+                if self.memory[Memory.FOUND_CROWBAR]:
+                    print("Let's go to that attic now...")
+                    self.current_room = Room.KITCHEN
+                else:
+                    print("I have to find something to open that attic door first...")
+            case Room.HALL:
+                print("You have entered the garage.")
 
     def person_interaction(self):
         print("No, no, NO! It's Charlie! He's all covered in blood... He's got two... no, three wounds in his chest... "
@@ -372,6 +400,7 @@ class AdventureGame:
             self.play_sound('sounds/VR_strych_dobijanie.wav')
             print("I try to open the door, but it is locked. The door seems to be jammed. "
                   "I need something to pry it open. Maybe in the garage I will find something to open it")
+            self.rooms[Room.HALL].append(Object.GARAGE_DOOR)
 
     def examine(self, object_name: Object):
         examinations = {
@@ -396,7 +425,7 @@ class AdventureGame:
         if action:
             action()
         else:
-            print(f"I think it is just the {object_name}. Nothing more to see here")
+            print(f"I think it is just the {object_name.replace('_', ' ')}. Nothing more to see here")
 
     def examine_calendar(self):
         if self.next_to_object == Object.FRIDGE:
@@ -416,7 +445,7 @@ class AdventureGame:
     def examine_folded_note(self):
         if self.next_to_object == Object.FRIDGE:
             self.play_sound('sounds/papier - wszystkie interakcje z papierem(pytanie xd).mp3')
-            print("I am unfolding the note. Oh! It looks like another note from my notebook! "
+            print("I am unfolding the note. Oh! It looks like another note from my notebook!\n"
                   "The note says: 'I cannot believe it! How could he do this to me? I trusted him with everything. "
                   "He was so important to me, but now... The pain is unbearable.'")
             self.memory[Memory.FOUND_KITCHEN_NOTE] = True
@@ -434,46 +463,47 @@ class AdventureGame:
 
     def examine_letter(self):
         if self.next_to_object == Object.BESIDE_TABLE:
-            print('"Dear Vanessa, last meeting was everything what we needed. '
-                  'Can\'t wait to see you tonight and arrange everything. '
-                  'Charlie" What is this letter? What it means?!')
+            print('"Dear Vanessa, last meeting was everything what we needed.\n'
+                  'Can\'t wait to see you tonight and arrange everything.\n'
+                  'Charlie"\nWhat is this letter? What does it mean?!')
             self.memory[Memory.FOUND_BEDROOM_LETTER] = True
         else:
-            print("It was on the bedside_table. I need to go to the bedside_table first")
+            print("It was on the bedside table. I need to go to the bedside table first")
 
     def examine_phone(self):
         if self.next_to_object == Object.PERSON:
             self.play_sound('sounds/VR_telefon.wav')
-            print("Yes, they had some secret meetings... They don't talk about their relationship though... "
-                  "They're talking about ME! But not in a bad way, they are worried... "
-                  "Worried about me? Vanessa writes that I'm not in the best mental place. "
-                  "That I am impulsive, under a lot of stress, that I started seeing things... "
+            print("Yes, they had some secret meetings... They don't talk about their relationship though...\n"
+                  "They're talking about ME! But not in a bad way, they are worried...\n"
+                  "Worried about me? Vanessa writes that I'm not in the best mental place.\n"
+                  "That I am impulsive, under a lot of stress, that I started seeing things...\n"
                   "Suddenly I hear another voice... no emotions in it, almost as it wasn't exactly human one...")
             self.memory[Memory.FOUND_BODY] = True
-            print('"Deep down you knew we didn\'t do it... You knew and you still did it... '
-                  'Even though I showed our texts... You didn\'t listen..." write look_up. to see who spoke')
+            print('"Deep down you knew we didn\'t do it...\nYou knew and you still did it...\n'
+                  'Even though I showed our texts...\nYou didn\'t listen..."')
+            print('You can use look_up command to see what was the source of the sound')
         else:
             print("I need to go to the person first")
 
     def look_up(self):
         if self.next_to_object == Object.PERSON and self.memory[Memory.FOUND_BODY]:
-            print("Frightened I look up from the phone... And I look right into eyes... Charlie's eyes... "
-                  "But they're empty now... They always had a spark of joy in them... "
-                  "Then Charlie opens his mouth once again and speaks with this unreal, dead voice... "
-                  "'You remember it now, right? How you took knife from kitchen... chased me here - to the attic...' "
-                  "I tell him to stop... Just don't finish, please... I BEG YOU! But he does finish... "
-                  "And all my fears become reality... My whole life shatters... "
-                  "I see those terrifying scenes happening just before my eyes... My hands covered in blood... "
+            print("Frightened I look up from the phone... And I look right into eyes... Charlie's eyes...\n"
+                  "But they're empty now... They always had a spark of joy in them...\n"
+                  "Then Charlie opens his mouth once again and speaks with this unreal, dead voice...\n"
+                  "'You remember it now, right? How you took knife from kitchen... chased me here - to the attic...'\n"
+                  "I tell him to stop... Just don't finish, please... I BEG YOU! But he does finish...\n"
+                  "And all my fears become reality... My whole life shatters...\n"
+                  "I see those terrifying scenes happening just before my eyes... My hands covered in blood...\n"
                   "Just like they are now... I have to get out of here...")
 
     def save_charlie(self):
         if self.current_room == Room.ATTIC and self.next_to_object == Object.FABRIC:
-            print("I'm pushing fabric against wounds, but blood just keeps coming... "
-                  "Now my hands are covered in scarlet fluid and I can't help but sob... "
-                  "My dear friend... what happened? Who could have done this... That's why Vanessa is crying... "
-                  "Right, but Charlie and Vanessa... Now it's all coming together... My notes and their letters... "
-                  "I feel extreme anger, I almost can't think clearly... I know who did this. "
-                  "But it was fair punishment for betraying me... HE DESERVED THIS! "
+            print("I'm pushing fabric against wounds, but blood just keeps coming...\n"
+                  "Now my hands are covered in scarlet fluid and I can't help but sob...\n"
+                  "My dear friend... what happened? Who could have done this... That's why Vanessa is crying...\n"
+                  "Right, but Charlie and Vanessa... Now it's all coming together... My notes and their letters...\n"
+                  "I feel extreme anger, I almost can't think clearly... I know who did this.\n"
+                  "But it was fair punishment for betraying me... HE DESERVED THIS!\n"
                   "I see something glowing in Charlie's hand... What is it?")
             self.finale()
         else:
@@ -491,6 +521,7 @@ class AdventureGame:
 
 if __name__ == '__main__':
     # Initialize and start the game
+    DEBUG_MODE = True
     game = AdventureGame()
     game.start()
 
