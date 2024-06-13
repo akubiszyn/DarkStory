@@ -59,6 +59,7 @@ class Memory(StrEnum):
     FOUND_KNIFE = "found_knife"  # Holds information whether the player has found the knife
     FOUND_BEDROOM_LETTER = "found_bedroom_letter"  # Holds information whether the player has found the letter
     FOUND_BED = "found_bed"  # Holds information whether the player has found the bed
+    OPENED_OFFICE_DOOR = "opened_office_door"
 
 
 class AdventureGame:
@@ -86,16 +87,20 @@ class AdventureGame:
             Room.KITCHEN: [Object.KITCHEN_DOOR, Object.TABLE, Object.FRIDGE, Object.WINDOW, Object.ATTIC_DOOR],
             Room.BEDROOM: [Object.BEDROOM_DOOR, Object.BED, Object.BESIDE_TABLE, Object.CLOSET, Object.WIFE],
             Room.GARAGE: [Object.CAR, Object.TOOL_SHELF, Object.GARAGE_DOOR],
-            Room.ATTIC: [Object.PERSON, Object.ATTIC_DOOR, Object.FABRIC]
+            Room.ATTIC: [Object.PERSON, Object.ATTIC_DOOR]
         }
         self.holding: Object | None = None
         self.memory = {
             Memory.REMEMBER_NAMES: ('wife', 'guy'),
             Memory.REMEMBER_STRESS: False,
-            Memory.FOUND_KITCHEN_NOTE: False,
-            Memory.FOUND_KNIFE: False,
             Memory.FOUND_CROWBAR: False,
-            Memory.FOUND_BODY: False
+            Memory.FOUND_BODY: False,
+            Memory.FOUND_KITCHEN_NOTE: False,
+            Memory.FOUND_OFFICE_KEY: False,
+            Memory.FOUND_KNIFE: False,
+            Memory.FOUND_BEDROOM_LETTER: False,
+            Memory.FOUND_BED: False,
+            Memory.OPENED_OFFICE_DOOR: False
         }
 
     def start(self):
@@ -231,6 +236,7 @@ class AdventureGame:
                                          "Inside I see some clothes and shoes. "
                                          "But I don't plan to dressing up so... no use"),
             Object.WIFE: self.wife_interaction,
+            Object.BED: self.bed_interaction,
             Object.KITCHEN_DOOR: self.kitchen_door_interaction,
 
             # GARAGE
@@ -278,12 +284,21 @@ class AdventureGame:
         self.__init__()
 
     def try_to_open_office_door(self):
-        if self.holding == Object.OFFICE_KEY:
+        if self.memory[Memory.OPENED_OFFICE_DOOR]:
+            match self.current_room:
+                case Room.HALL:
+                    self.current_room = Room.OFFICE
+                    print("You've entered the office")
+                case Room.OFFICE:
+                    self.current_room = Room.HALL
+                    print("You've entered the hall")
+        elif self.holding == Object.OFFICE_KEY:
             self.play_sound('sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3')
             print("I opened the door with the key and went inside the office. "
                   "I should look around and see what's in here.")
             self.current_room = Room.OFFICE
             self.holding = None
+            self.memory[Memory.OPENED_OFFICE_DOOR] = True
         else:
             self.play_sound('sounds/VR_strych_dobijanie.wav')
             print("This door is closed. Maybe I can find some key that opens it.")
@@ -340,8 +355,10 @@ class AdventureGame:
                     print("I have to find out more...")
                 else:
                     print("I should go back to the hall and then go to the garage")
+                    self.current_room = Room.HALL
             case Room.HALL:
                 print("Let's see what's inside the bedroom now.")
+                self.current_room = Room.BEDROOM
 
     def bedside_table_interaction(self):
         print("I am next to the bedside_table. There is a lamp on it. And there seems to be a folded note under the "
@@ -353,6 +370,15 @@ class AdventureGame:
         print("She is sitting on the bed, crying. I try to speak to her, but she does not respond. "
               "It seems like she cannot see me. What is happening?")
         self.next_to_object = Object.WIFE
+
+    def bed_interaction(self):
+        print("Is the bed on which Vanessa is sitting"
+              "She is still crying."
+              "Why did you do it?? Oh whyy"
+              "I want to help her, but she is not hearing me"
+              "Maybe in garage I will something to break door and go to the attic")
+        self.next_to_object = Object.BED
+        self.memory[Memory.FOUND_BED] = True
 
     def kitchen_door_interaction(self):
         self.next_to_object = Object.KITCHEN_DOOR
@@ -366,6 +392,8 @@ class AdventureGame:
                 else:
                     print("Let's go back to the hall and then I will go to the bedroom.")
                     self.rooms[Room.HALL].append(Object.BEDROOM_DOOR)
+                    self.current_room = Room.HALL
+                    print("You've entered the hall")
 
     def tool_shelf_interaction(self):
         print("There are piles of screws and scraps of papers. Crap, I am not a tidy person, "
@@ -384,6 +412,7 @@ class AdventureGame:
                     print("I have to find something to open that attic door first...")
             case Room.HALL:
                 print("You have entered the garage.")
+                self.current_room = Room.GARAGE
 
     def person_interaction(self):
         print("No, no, NO! It's Charlie! He's all covered in blood... He's got two... no, three wounds in his chest... "
@@ -495,6 +524,7 @@ class AdventureGame:
                   "And all my fears become reality... My whole life shatters...\n"
                   "I see those terrifying scenes happening just before my eyes... My hands covered in blood...\n"
                   "Just like they are now... I have to get out of here...")
+            self.finale()
 
     def save_charlie(self):
         if self.current_room == Room.ATTIC and self.next_to_object == Object.FABRIC:
@@ -505,7 +535,7 @@ class AdventureGame:
                   "I feel extreme anger, I almost can't think clearly... I know who did this.\n"
                   "But it was fair punishment for betraying me... HE DESERVED THIS!\n"
                   "I see something glowing in Charlie's hand... What is it?")
-            self.finale()
+            self.rooms[Room.ATTIC].append(Object.PHONE)
         else:
             print("Unknown command.")
 
@@ -524,7 +554,3 @@ if __name__ == '__main__':
     DEBUG_MODE = True
     game = AdventureGame()
     game.start()
-
-
-# HOW TO PLAY:
-# play_sound(path_to_sound_file)
