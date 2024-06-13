@@ -1,81 +1,29 @@
-chat mi to wypluł, zeby przejsc gre
-
-General Commands:
-look
-go_to <object>
-examine <object>
-save_charlie
-try_open_attic_door
-look_up
-quit
-Specific Commands to Progress Through the Game:
-Hallway:
-
-look
-go_to dresser
-examine dresser
-go_to plant
-examine plant
-go_to painting
-examine painting
-go_to umbrella
-go_to wardrobe
-go_to door
-try_to_open_door
-go_to front_door
-Office:
-
-go_to desk
-go_to chair
-go_to computer
-explore_computer
-go_to bookshelf
-examine bookshelf
-go_to kitchen (after hearing the lock squeak)
-Kitchen:
-
-go_to table
-examine knife
-go_to fridge
-examine calendar
-examine shopping_list
-examine folded_note
-go_to window
-go_to attic_door
-try_open_attic_door
-Bedroom (only accessible after finding 2 notes with the knife):
-
-go_to bedside_table
-examine letter
-go_to closet
-go_to wife
-go_to bed
-go_to garage
-Garage:
-
-go_to car
-go_to tool_shelf
-examine tool_shelf
-go_to garage_door
-Attic:
-
-go_to person
-examine person
-examine phone
-charlie_talks
-look_up
-go_to fabric
-save_charlie
-Additional Flow:
-After finding the crowbar in the garage:
-
-go_to kitchen
-go_to attic_door
-try_open_attic_door
-After interacting with the person in the attic and examining the phone:
-
-look_up
-save_charlie
-Final steps to escape the madness:
-
-finale
+Jak przejść?
+- go_to dresser
+- go_to office_door
+- go_to computer
+- go_to bookshelf
+- go_to kitchen_door
+- go_to fridge
+- examine folded_letter
+- go_to table
+- examine knife
+- go_to attic_door
+- try_open_attic_door
+- go_to kitchen_door
+- go_to bedroom
+- go_to bedside_table
+- examine letter
+- go_to bed
+- go_to bedroom_door
+- go_to garage_door
+- go_to tool_shelf
+- examine tool_shelf
+- go_to garage_door
+- try_open_attic_door
+- go_to person
+- go_to fabric
+- save_charlie
+- examine phone
+- look_up
+- go_to front_door
