@@ -2,6 +2,7 @@ from enum import StrEnum
 import pygame
 import threading
 import time
+import random
 
 
 class Room(StrEnum):
@@ -118,7 +119,8 @@ class AdventureGame:
         sound.play()
         if sound_file in ('sounds/VR_kroki_krotkie.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3',
                           'sounds/VR_strych_dobijanie.wav', 'sounds/VR_wbieganie_po_schodach.wav',
-                          'sounds/VR_mezczyzna_krzyczacy.wav', 'sounds/walking_wood_modified.mp3'):
+                          'sounds/VR_mezczyzna_krzyczacy.wav', 'sounds/walking_wood_modified.mp3',
+                          'sounds/drawer_2.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3'):
             sound_length = sound.get_length()
             time.sleep(sound_length)
 
@@ -194,6 +196,14 @@ class AdventureGame:
             elif self.current_room == Room.ATTIC and obj == Object.PERSON:
                 self.play_sound('sounds/VR_mezczyzna_krzyczacy.wav')
             else:
+                sound_choices = [
+                    'sounds/walking_wood_modified render 001.wav',
+                    'sounds/walking_wood_modified render 002.wav',
+                    'sounds/walking_wood_modified render 003.wav',
+                    'sounds/walking_wood.wav'
+                ]
+                selected_sound = random.choice(sound_choices)
+                self.play_sound(selected_sound)
                 self.play_sound('sounds/walking_wood_modified.mp3')
 
             self.next_to_object = obj
@@ -264,6 +274,7 @@ class AdventureGame:
         print(message)
 
     def find_key(self):
+        self.play_sound('sounds/drawer_2.wav')
         self.play_sound('sounds/taking key.mp3')
         print("I found a key in the drawer. I wonder what it opens.")
         self.holding = Object.OFFICE_KEY
@@ -348,6 +359,7 @@ class AdventureGame:
         self.rooms[Room.KITCHEN].extend([Object.CALENDAR, Object.SHOPPING_LIST, Object.FOLDED_NOTE])
 
     def attic_door_interaction(self):
+        self.play_sound('sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3')
         self.play_sound('sounds/VR_wbieganie_po_schodach.wav')
         print("There are blood stains on the door and the knob. And streaks of blood leading up to the entrance. "
               "I need to go to the attic to check what happened.")
@@ -363,6 +375,7 @@ class AdventureGame:
                     self.current_room = Room.HALL
             case Room.HALL:
                 print("Let's see what's inside the bedroom now.")
+                self.play_sound('sounds/Drzwi otwieranie bez skrzypienia.mp3')
                 self.current_room = Room.BEDROOM
 
     def bedside_table_interaction(self):
@@ -397,11 +410,13 @@ class AdventureGame:
                     print("I have to find out more before I will go somewhere else...")
                 else:
                     print("Let's go back to the hall and then I will go to the bedroom.")
+                    self.play_sound('sounds/VR_zamek_do_drzwi.wav')
                     self.rooms[Room.HALL].append(Object.BEDROOM_DOOR)
                     self.current_room = Room.HALL
                     print("You've entered the hall")
 
     def tool_shelf_interaction(self):
+        self.play_sound('sounds/toolbox.wav')
         print("There are piles of screws and scraps of papers. Crap, I am not a tidy person, "
               "I hope I will find something though. Oh yes! Between hammers I found a crowbar! "
               "That should do it! Now I can use this to open the attic door...")
@@ -533,6 +548,7 @@ class AdventureGame:
             self.finale()
 
     def save_charlie(self):
+        self.play_sound('sounds/krzyk_charliego.wav')
         if self.current_room == Room.ATTIC and self.next_to_object == Object.FABRIC:
             print("I'm pushing fabric against wounds, but blood just keeps coming...\n"
                   "Now my hands are covered in scarlet fluid and I can't help but sob...\n"
@@ -548,6 +564,7 @@ class AdventureGame:
     def finale(self):
         if self.current_room == Room.ATTIC:
             self.current_room = Room.HALL
+            self.play_sound('sounds/running.wav')
             print("I pass through what's left from attic door...")
             self.play_sound('sounds/VR_kobiecy placz i belkot .wav')
             print('"Why did you do it..." I hear Vanessa, my lovely wife still crying in the bedroom...')
