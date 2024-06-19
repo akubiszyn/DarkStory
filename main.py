@@ -118,7 +118,7 @@ class AdventureGame:
         sound.play()
         if sound_file in ('sounds/VR_kroki_krotkie.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3',
                           'sounds/VR_strych_dobijanie.wav', 'sounds/VR_wbieganie_po_schodach.wav',
-                          'sounds/VR_mezczyzna_krzyczacy.wav'):
+                          'sounds/VR_mezczyzna_krzyczacy.wav', 'sounds/walking_wood_modified.mp3'):
             sound_length = sound.get_length()
             time.sleep(sound_length)
 
@@ -188,11 +188,14 @@ class AdventureGame:
         if obj in self.rooms[self.current_room]:
             if self.current_room == Room.ATTIC and obj == Room.KITCHEN:
                 self.play_sound('sounds/VR_wbieganie_po_schodach.wav')
-            elif obj == Room.BEDROOM:
-                self.play_sound('sounds/VR_mezczyzna_krzyczacy.wav')
+            elif self.current_room == Room.BEDROOM:
+                self.play_sound('sounds/walking_carpet_2.mp3')
                 self.play_sound('sounds/VR_kobiecy placz_z_bliska .wav')
+            elif self.current_room == Room.ATTIC and obj == Object.PERSON:
+                self.play_sound('sounds/VR_mezczyzna_krzyczacy.wav')
+            else:
+                self.play_sound('sounds/walking_wood_modified.mp3')
 
-            self.play_sound('sounds/VR_kroki_krotkie.wav')
             self.next_to_object = obj
             self.interact_with(obj)
         else:
@@ -261,6 +264,7 @@ class AdventureGame:
         print(message)
 
     def find_key(self):
+        self.play_sound('sounds/taking key.mp3')
         print("I found a key in the drawer. I wonder what it opens.")
         self.holding = Object.OFFICE_KEY
 
@@ -305,6 +309,7 @@ class AdventureGame:
 
     def explore_computer(self):
         print("Exploring the computer...")
+        self.play_sound('sounds/keyboard_in_front_of.mp3')
         if not self.memory[Memory.REMEMBER_NAMES][0] == 'Vanessa':
             self.play_sound('sounds/VR_odłożenie_zdjęcia.wav')
             print("I found a folder named 'Venice_2019'.")
@@ -385,6 +390,7 @@ class AdventureGame:
         match self.current_room:
             case Room.OFFICE:
                 print("Let's go to the kitchen!")
+                self.play_sound('sounds/VR_zamek_do_drzwi.wav')
                 self.current_room = Room.KITCHEN
             case Room.KITCHEN:
                 if not (self.memory[Memory.FOUND_KITCHEN_NOTE] and self.memory[Memory.FOUND_KNIFE]):
@@ -458,7 +464,7 @@ class AdventureGame:
 
     def examine_calendar(self):
         if self.next_to_object == Object.FRIDGE:
-            self.play_sound('sounds/VR_odłożenie_zdjęcia.wav')
+            self.play_sound('sounds/calendar_modified.mp3')
             print("It is a calendar with a fun photo of a dog. Today's date is circled in red with Charlie's name. "
                   "Maybe he is coming here today. I would love to see my dear friend")
         else:
@@ -543,6 +549,7 @@ class AdventureGame:
         if self.current_room == Room.ATTIC:
             self.current_room = Room.HALL
             print("I pass through what's left from attic door...")
+            self.play_sound('sounds/VR_kobiecy placz i belkot .wav')
             print('"Why did you do it..." I hear Vanessa, my lovely wife still crying in the bedroom...')
             print("I'm sorry! I'M SO SORRY! It wasn't meant to be like this...")
             print("I feel like I'm suffocating in this damn house!")
@@ -551,6 +558,6 @@ class AdventureGame:
 
 if __name__ == '__main__':
     # Initialize and start the game
-    DEBUG_MODE = True
+    DEBUG_MODE = False
     game = AdventureGame()
     game.start()
