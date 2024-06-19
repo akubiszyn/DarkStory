@@ -5,13 +5,13 @@ Jak przejść?
 - go_to bookshelf
 - go_to kitchen_door
 - go_to fridge
-- examine folded_letter
+- examine folded_note
 - go_to table
 - examine knife
 - go_to attic_door
 - try_open_attic_door
 - go_to kitchen_door
-- go_to bedroom
+- go_to bedroom_door
 - go_to bedside_table
 - examine letter
 - go_to bed

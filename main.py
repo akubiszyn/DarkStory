@@ -120,7 +120,11 @@ class AdventureGame:
         if sound_file in ('sounds/VR_kroki_krotkie.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3',
                           'sounds/VR_strych_dobijanie.wav', 'sounds/VR_wbieganie_po_schodach.wav',
                           'sounds/VR_mezczyzna_krzyczacy.wav', 'sounds/walking_wood_modified.mp3',
-                          'sounds/drawer_2.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3'):
+                          'sounds/drawer_2.wav', 'sounds/stare skrzypiace drzwi otwieranie i zamykanie.mp3',
+                          'sounds/walking_wood_modified render 001.wav',
+                    'sounds/walking_wood_modified render 002.wav',
+                    'sounds/walking_wood_modified render 003.wav',
+                    'sounds/walking_wood.wav'):
             sound_length = sound.get_length()
             time.sleep(sound_length)
 
@@ -204,7 +208,7 @@ class AdventureGame:
                 ]
                 selected_sound = random.choice(sound_choices)
                 self.play_sound(selected_sound)
-                self.play_sound('sounds/walking_wood_modified.mp3')
+                # self.play_sound('sounds/walking_wood_modified.mp3')
 
             self.next_to_object = obj
             self.interact_with(obj)
@@ -270,7 +274,7 @@ class AdventureGame:
             print(f"Nothing special about the {obj}.")
 
     def find_note(self, message):
-        self.play_sound('sounds/papier - wszystkie interakcje z papierem(pytanie xd).mp3')
+        self.play_sound('sounds/letter_open.wav')
         print(message)
 
     def find_key(self):
@@ -403,7 +407,7 @@ class AdventureGame:
         match self.current_room:
             case Room.OFFICE:
                 print("Let's go to the kitchen!")
-                self.play_sound('sounds/VR_zamek_do_drzwi.wav')
+                self.play_sound('sounds/dooropen.wav')
                 self.current_room = Room.KITCHEN
             case Room.KITCHEN:
                 if not (self.memory[Memory.FOUND_KITCHEN_NOTE] and self.memory[Memory.FOUND_KNIFE]):
@@ -513,6 +517,7 @@ class AdventureGame:
 
     def examine_letter(self):
         if self.next_to_object == Object.BESIDE_TABLE:
+            self.play_sound('sounds/letter_open.wav')
             print('"Dear Vanessa, last meeting was everything what we needed.\n'
                   'Can\'t wait to see you tonight and arrange everything.\n'
                   'Charlie"\nWhat is this letter? What does it mean?!')
